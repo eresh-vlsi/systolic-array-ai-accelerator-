@@ -83,3 +83,4 @@ Data Flow:
 Eresh  
 M.Tech in VLSI Design & Embedded Systems – RV College of Engineering  
 [LinkedIn](https://linkedin.com/in/eresh-g-k-b97532244) | [GitHub](https://github.com/eresh-vlsi)
+![WhatsApp Image 2025-07-16 at 4 48 32 PM (3)](https://github.com/user-attachments/assets/b61f093e-7c0c-4926-89fc-19b6aa48006c)
