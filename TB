@@ -1,0 +1,124 @@
+module tb_systolic_array_3x3;
+    parameter DATA_WIDTH = 8;
+    parameter RESULT_WIDTH = 16;
+    
+    // Testbench signals
+    reg clk;
+    reg rst;
+    reg start;
+    
+    // Matrix A inputs
+    reg signed [DATA_WIDTH-1:0] a00, a01, a02;
+    reg signed [DATA_WIDTH-1:0] a10, a11, a12;
+    reg signed [DATA_WIDTH-1:0] a20, a21, a22;
+    
+    // Matrix B inputs
+    reg signed [DATA_WIDTH-1:0] b00, b01, b02;
+    reg signed [DATA_WIDTH-1:0] b10, b11, b12;
+    reg signed [DATA_WIDTH-1:0] b20, b21, b22;
+    
+    // Outputs
+    wire signed [RESULT_WIDTH-1:0] c00_out, c01_out, c02_out;
+    wire signed [RESULT_WIDTH-1:0] c10_out, c11_out, c12_out;
+    wire signed [RESULT_WIDTH-1:0] c20_out, c21_out, c22_out;
+    wire valid_out;
+    
+    // Instantiate the systolic array
+    systolic_array_3x3 #(
+        .DATA_WIDTH(DATA_WIDTH),
+        .RESULT_WIDTH(RESULT_WIDTH)
+    ) uut (
+        .clk(clk),
+        .rst(rst),
+        .start(start),
+        .a00_in(a00), .a01_in(a01), .a02_in(a02),
+        .a10_in(a10), .a11_in(a11), .a12_in(a12),
+        .a20_in(a20), .a21_in(a21), .a22_in(a22),
+        .b00_in(b00), .b01_in(b01), .b02_in(b02),
+        .b10_in(b10), .b11_in(b11), .b12_in(b12),
+        .b20_in(b20), .b21_in(b21), .b22_in(b22),
+        .c00_out(c00_out), .c01_out(c01_out), .c02_out(c02_out),
+        .c10_out(c10_out), .c11_out(c11_out), .c12_out(c12_out),
+        .c20_out(c20_out), .c21_out(c21_out), .c22_out(c22_out),
+        .valid_out(valid_out)
+    );
+    
+    // Clock generation
+    always #5 clk = ~clk;
+    
+    // Monitor outputs continuously
+    always @(posedge clk) begin
+        $display("Time=%0t, Cycle=%0d, Valid=%b, Enable=%b", 
+                 $time, uut.cycle_count, valid_out, uut.enable);
+        $display("C: [%0d %0d %0d] [%0d %0d %0d] [%0d %0d %0d]", 
+                 c00_out, c01_out, c02_out, c10_out, c11_out, c12_out, c20_out, c21_out, c22_out);
+        $display("A_inputs: [%0d %0d %0d], B_inputs: [%0d %0d %0d]", 
+                 uut.a_inputs[0], uut.a_inputs[1], uut.a_inputs[2],
+                 uut.b_inputs[0], uut.b_inputs[1], uut.b_inputs[2]);
+        $display("---");
+    end
+    
+    initial begin
+        // Initialize signals
+        clk = 0;
+        rst = 1;
+        start = 0;
+        
+        // Initialize Matrix A
+        a00 = 4; a01 = 2; a02 = 3;
+        a10 = 4; a11 = 5; a12 = 6;
+        a20 = 7; a21 = 8; a22 = 9;
+        
+        // Initialize Matrix B (Identity matrix)
+        b00 = 1; b01 = 0; b02 = 0;
+        b10 = 1; b11 = 1; b12 = 0;
+        b20 = 1; b21 = 0; b22 = 1;
+        
+        // Reset sequence
+        #15 rst = 0;
+        #10 start = 1;
+        #10 start = 0;
+        
+        // Wait for computation to complete
+        wait(valid_out);
+        #20;
+        
+        // Test results
+        $display("\n=== FINAL RESULTS ===");
+        $display("Matrix A:");
+        $display("[%0d %0d %0d]", a00, a01, a02);
+        $display("[%0d %0d %0d]", a10, a11, a12);
+        $display("[%0d %0d %0d]", a20, a21, a22);
+        
+        $display("\nMatrix B:");
+        $display("[%0d %0d %0d]", b00, b01, b02);
+        $display("[%0d %0d %0d]", b10, b11, b12);
+        $display("[%0d %0d %0d]", b20, b21, b22);
+        
+        $display("\nExpected Result (A × B):");
+        $display("[1 2 3]");
+        $display("[4 5 6]");
+        $display("[7 8 9]");
+        
+        $display("\nActual Result:");
+        $display("[%0d %0d %0d]", c00_out, c01_out, c02_out);
+        $display("[%0d %0d %0d]", c10_out, c11_out, c12_out);
+        $display("[%0d %0d %0d]", c20_out, c21_out, c22_out);
+        $display("Valid: %b", valid_out);
+        
+        // Verify results
+        if (c00_out == 1 && c01_out == 2 && c02_out == 3 &&
+            c10_out == 4 && c11_out == 5 && c12_out == 6 &&
+            c20_out == 7 && c21_out == 8 && c22_out == 9) begin
+            $display("\n✓ TEST PASSED: Matrix multiplication is correct!");
+        end else begin
+            $display("\n✗ TEST FAILED: Matrix multiplication is incorrect!");
+        end
+        
+        $finish;
+    end
+    
+    // Timeout
+    initial #2000 $finish;
+    
+endmodule
