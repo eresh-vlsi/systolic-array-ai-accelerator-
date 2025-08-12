@@ -1,0 +1,30 @@
+
+module PE #(
+    parameter DATA_WIDTH = 8,
+    parameter RESULT_WIDTH = 16
+) (
+    input wire clk,
+    input wire rst,
+    input wire enable,
+    input wire signed [DATA_WIDTH-1:0] a_in,
+    input wire signed [DATA_WIDTH-1:0] b_in,
+    output reg signed [DATA_WIDTH-1:0] a_out,
+    output reg signed [DATA_WIDTH-1:0] b_out,
+    output reg signed [RESULT_WIDTH-1:0] c_out
+);
+
+    always @(posedge clk) begin
+        if (rst) begin
+            a_out <= 0;
+            b_out <= 0;
+            c_out <= 0;
+        end else begin
+            a_out <= a_in;  // Pass a horizontally
+            b_out <= b_in;  // Pass b vertically
+            if (enable) begin
+                c_out <= c_out + (a_in * b_in);  // Accumulate
+            end
+        end
+    end
+
+endmodule
